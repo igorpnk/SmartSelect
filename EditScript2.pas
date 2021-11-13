@@ -111,15 +111,35 @@ Begin
     PCB_Board       := PCBServer.GetCurrentPCBBoard;
     If PCB_Board     = Nil Then Exit;
 
-    if  (PCB_Board.SelectecObjectCount > 1) then
+
+
+
+
+    if (PCB_Board.SelectecObject[0] = NIL) then
+    begin
+         Track := PCB_Board.GetObjectAtCursor(MkSet(eTrackObject,eArcObject,eViaObject,ePadObject), AllLayers, 'Choose a Track');
+    end  else
+    begin
+
+    if  ((PCB_Board.SelectecObjectCount > 1) or (PCB_Board.SelectecObject[0].ObjectID  = eViaObject) or (PCB_Board.SelectecObject[0].ObjectID  = ePadObject))  then
     begin
          Client.SendMessage('PCB:SelectNext', 'SelectTopologyObjects = TRUE', 255, Client.CurrentView);
          Exit;
     end;
 
-    Track := PCB_Board.SelectecObject[0];
-    if (Track = Nil) then
-       Track := PCB_Board.GetObjectAtCursor(MkSet(eTrackObject,eArcObject,eViaObject), AllLayers, 'Choose a Track');
+    if ((PCB_Board.SelectecObject[0].ObjectID  = eTrackObject) or (PCB_Board.SelectecObject[0].ObjectID  = eArcObject)
+       or (PCB_Board.SelectecObject[0].ObjectID  = eViaObject) or (PCB_Board.SelectecObject[0].ObjectID  = ePadObject))
+       then
+           begin
+                Track := PCB_Board.SelectecObject[0];
+           end
+       else
+           begin
+                ShowError('Please select Track!');
+                Exit;
+           end;
+    end;
+
 
     If Track <> Nil Then
     begin
