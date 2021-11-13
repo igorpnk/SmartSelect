@@ -69,6 +69,7 @@ StartProcName=EditScript2.pas>SelectNetSegment
 [Generic_Watches]
 0=layer
 1=count
+2=Net.Name
 
 [OutputGroup1]
 Name=Netlist Outputs

@@ -150,11 +150,14 @@ Begin
         Net:=Track.Net;
         NetName:=Net.Name;
         layer:= Track.Layer;
+      end else
+      begin
+      Client.SendMessage('PCB:SelectNext', 'SelectTopologyObjects = TRUE', 255, Client.CurrentView);
+         Exit;
       end;
+
     end else Exit;
     //выделили исходный сегмент и взяли название цепи
-
-
 
     TrackList := TInterfaceList.Create;
     X1List := TStringList.Create; Y1List := TStringList.Create; X2List := TStringList.Create; Y2List := TStringList.Create;
