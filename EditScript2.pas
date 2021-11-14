@@ -16,6 +16,8 @@ Var
     i,InitialSegmentIndex,NewSegmentIndex,CoordClick
               : integer;
     count     : integer;
+
+    Block     : Boolean;
 {...............................................................................}
 
 //выделить track, вызвать скрипт. Скрипт выделит имя цепи из этого трэка и выделит все остальные объекты (track, arc, via) которые принадлежат к этой цепи.
@@ -115,10 +117,16 @@ Begin
     end  else
     begin
 
-    if  ((PCB_Board.SelectecObjectCount > 1) or (PCB_Board.SelectecObject[0].ObjectID  = eViaObject) or (PCB_Board.SelectecObject[0].ObjectID  = ePadObject))  then
+    if  (PCB_Board.SelectecObjectCount > 1) then
     begin
          Client.SendMessage('PCB:SelectNext', 'SelectTopologyObjects = TRUE', 255, Client.CurrentView);
          Exit;
+    end;
+
+    if  ((PCB_Board.SelectecObject[0].ObjectID  = eViaObject) or (PCB_Board.SelectecObject[0].ObjectID  = ePadObject))  then
+    begin
+         //Client.SendMessage('PCB:SelectNext', 'SelectTopologyObjects = TRUE', 255, Client.CurrentView);
+         //Exit;
     end;
 
     if ((PCB_Board.SelectecObject[0].ObjectID  = eTrackObject) or (PCB_Board.SelectecObject[0].ObjectID  = eArcObject)
@@ -156,7 +164,8 @@ Begin
 
     Iterator  :=Net.GroupIterator_Create;
     Iterator.AddFilter_ObjectSet(MkSet(eTrackObject,eArcObject,eViaObject,ePadObject,eNoDimension,eCreate_Default));
-    Iterator.AddFilter_LayerSet(MkSet(Layer,eMultiLayer));
+    if (layer = eMultiLayer) then  Iterator.AddFilter_LayerSet(AllLayers);
+    if (layer <> eMultiLayer) then Iterator.AddFilter_LayerSet(MkSet(Layer,eMultiLayer));
     //TIterator.AddFilter_Method(eProcessAll);
 
     // AIterator  := Net.GroupIterator_Create;
@@ -253,6 +262,8 @@ Begin
 
     End;
 
+    Block := false;
+
     FindNextSegment(InitialSegmentIndex); // он пойдёт в одну сторону и упрется
 
     While (NewSegmentIndex<>-1) Do
@@ -266,6 +277,13 @@ Begin
     Begin
       FindNextSegment(NewSegmentIndex);
     End;
+
+    if (PCB_Board.SelectecObjectCount = 1) then   //если ничего не выделилось, то возможно у нас Via, pad или один сегмент
+     begin
+          Block := true;
+          Client.SendMessage('PCB:SelectNext', 'SelectTopologyObjects = TRUE', 255, Client.CurrentView);
+          Exit;
+     end;
 
     PrimList.Free; X1List.Free; Y1List.Free; X2List.Free; Y2List.Free;
 
