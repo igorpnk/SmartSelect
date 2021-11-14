@@ -151,12 +151,7 @@ Begin
     begin
 
     if  (PCB_Board.SelectecObjectCount > 1) then
-    begin
-         while  (PCB_Board.SelectecObject[1] <> NIL) do  //убираем выделение со всех объектов кроме нулевого.
-         begin
-            PCB_Board.SelectecObject[1].Selected := false;
-         end;
-
+    begin   
          Client.SendMessage('PCB:SelectNext', 'SelectTopologyObjects = TRUE', 255, Client.CurrentView);
          Exit;
     end;
