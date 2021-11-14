@@ -70,6 +70,21 @@ StartProcName=EditScript2.pas>SelectNetSegment
 0=layer
 1=count
 2=Net.Name
+3=PCB_Board.SelectecObjectCount
+4=i
+5=counts
+6=X1List[WorkIndex]
+7=X1List[i]
+8=Y1List[WorkIndex]
+9=Y1List[i]
+10=X2List[WorkIndex]
+11=Y2List[WorkIndex]
+12=coordtomms(Track.x2)
+13=coordtomms(Track.x1)
+14=Track.x1
+15=Track.x2
+16=X1List[WorkIndex]+1
+17=X1List[i]
 
 [OutputGroup1]
 Name=Netlist Outputs
