@@ -19,6 +19,7 @@ Var
 
     Block     : Boolean;
     segments  : boolean;
+    OldBlock  : Boolean;
 {...............................................................................}
 
 //выделить track, вызвать скрипт. Скрипт выделит имя цепи из этого трэка и выделит все остальные объекты (track, arc, via) которые принадлежат к этой цепи.
@@ -56,12 +57,32 @@ Begin
       End;
     End;
 
+
     if (NewSegmentIndex <> -1) then
     if (((CoordClick=1) or (block)))  Then
     Begin
-      PrimList.items[NewSegmentIndex].Selected:=true; PrimList.items[NewSegmentIndex].GraphicallyInvalidate;
-      Result:=NewSegmentIndex;//если сегмент один, возвращаем его. Если их нет/два и больше, этот конец нам не подходит.
-      Exit;
+
+      if ((block = false) and (OldBlock = true))
+      then
+      begin
+                 if (((X1List[NewSegmentIndex] <> X1List[InitialSegmentIndex]) and
+                      (Y1List[NewSegmentIndex] <> Y1List[InitialSegmentIndex])) or
+                     ((X2List[NewSegmentIndex] <> X2List[InitialSegmentIndex]) and
+                      (Y2List[NewSegmentIndex] <> Y2List[InitialSegmentIndex])))
+                 then
+                 begin
+                 PrimList.items[NewSegmentIndex].Selected:=true; PrimList.items[NewSegmentIndex].GraphicallyInvalidate;
+                 Result:=NewSegmentIndex;//если сегмент один, возвращаем его. Если их нет/два и больше, этот конец нам не подходит.
+                 Exit;
+                 end;
+      end
+      else
+      begin
+                 PrimList.items[NewSegmentIndex].Selected:=true; PrimList.items[NewSegmentIndex].GraphicallyInvalidate;
+                 Result:=NewSegmentIndex;//если сегмент один, возвращаем его. Если их нет/два и больше, этот конец нам не подходит.
+                 Exit;
+      end;
+
     End else
     begin
       segments := true;
@@ -236,6 +257,7 @@ Begin
     End;
 
     Block := false;
+    OldBlock := false;
 
     FindNextSegment(InitialSegmentIndex); // он пойдёт в одну сторону и упрется
 
@@ -257,17 +279,20 @@ Begin
           //Exit;
           Segments := true;
 
+
           While (Segments) do
           begin
              Segments := false;
              Block := true;
-             FindNextSegment(InitialSegmentIndex);  // поэтому вызываем всё это to ераз, чтобы он прошел еще и в другую сторону
+             OldBlock := true;
+             FindNextSegment(InitialSegmentIndex);
              Block := false;
 
              While (NewSegmentIndex<>-1) Do
              Begin
                FindNextSegment(NewSegmentIndex);
              End;
+
           end;
      end;
 
