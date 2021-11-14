@@ -12,7 +12,7 @@ Var
     Primitive : IPCB_Primitive;
 
     PrimList : TInterfaceList;
-    X1List,Y1List,X2List,Y2List: TStringList; //ну неизвестно сколько их будет, поэтому одним двумерным никак
+    X1List,Y1List,X2List,Y2List: TList; //ну неизвестно сколько их будет, поэтому одним двумерным никак
     i,InitialSegmentIndex,NewSegmentIndex,CoordClick
               : integer;
     count     : integer;
@@ -33,9 +33,9 @@ Begin
     // проверка на совпадение Х1 и У1 (исх) и  Х1 и У1 (нов)
     For i := 0 to PrimList.Count - 1 Do //проверка на совпадение Х
     Begin
-      if (X1List[i] = X1List[WorkIndex]) and (PrimList.items[i].Selected=false) then //если Х совпало...
+      if ((X1List[i] = X1List[WorkIndex]) or (X1List[i] = X1List[WorkIndex]+1) or (X1List[i] = X1List[WorkIndex]-1)) and (PrimList.items[i].Selected=false) then //если Х совпало...
       Begin
-        if  (Y1List[i] = Y1List[WorkIndex]) then  // ... и У совпало, значит из этой точки действительно выходит новый сегмент.
+        if  ((Y1List[i] = Y1List[WorkIndex]) or (Y1List[i] = Y1List[WorkIndex]+1) or (Y1List[i] = Y1List[WorkIndex]-1) ) then  // ... и У совпало, значит из этой точки действительно выходит новый сегмент.
         Begin
           CoordClick:=CoordClick+1; // добавляем счетчик, запоминаем индекс
           NewSegmentIndex:=i;
@@ -46,9 +46,9 @@ Begin
     // проверка на совпадение Х1 и У1 (исх) и  Х2 и У2 (нов)
     For i := 0 to PrimList.Count - 1 Do //проверка на совпадение Х
     Begin
-      if (X2List[i] = X1List[WorkIndex])  and (PrimList.items[i].Selected=false) then //если Х совпало...
+      if ((X2List[i] = X1List[WorkIndex]) or (X2List[i] = X1List[WorkIndex]+1) or (X2List[i] = X1List[WorkIndex]-1))  and (PrimList.items[i].Selected=false) then //если Х совпало...
       Begin
-        if ((Y2List[i] = Y1List[WorkIndex])) then  // ... и У совпало, значит из этой точки действительно выходит новый сегмент.
+        if ((Y2List[i] = Y1List[WorkIndex]) or (Y2List[i] = Y1List[WorkIndex]+1) or (Y2List[i] = Y1List[WorkIndex] -1)) then  // ... и У совпало, значит из этой точки действительно выходит новый сегмент.
         Begin
           CoordClick:=CoordClick+1; // добавляем счетчик, запоминаем индекс
           NewSegmentIndex:=i;
@@ -71,9 +71,9 @@ Begin
     // проверка на совпадение Х2 и У2 (исх) и  Х1 и У1 (нов)
     For i := 0 to PrimList.Count - 1 Do //проверка на совпадение Х
     Begin
-      if (X1List[i] = X2List[WorkIndex]) and (PrimList.items[i].Selected=false) then //если Х совпало...
+      if ((X1List[i] = X2List[WorkIndex]) or (X1List[i] = X2List[WorkIndex] +1) or (X1List[i] = X2List[WorkIndex]-1)) and (PrimList.items[i].Selected=false) then //если Х совпало...
       Begin
-        if (Y1List[i] = Y2List[WorkIndex]) then  // ... и У совпало, значит из этой точки действительно выходит новый сегмент.
+        if ((Y1List[i] = Y2List[WorkIndex]) or (Y1List[i] = Y2List[WorkIndex]+1) or (Y1List[i] = Y2List[WorkIndex]-1)) then  // ... и У совпало, значит из этой точки действительно выходит новый сегмент.
         Begin
           CoordClick:=CoordClick+1; // добавляем счетчик, запоминаем индекс
           NewSegmentIndex:=i;
@@ -84,9 +84,9 @@ Begin
     // проверка на совпадение Х2 и У2 (исх) и  Х2 и У2 (нов)
     For i := 0 to PrimList.Count - 1 Do //проверка на совпадение Х
     Begin
-      if (X2List[i] = X2List[WorkIndex]) and (PrimList.items[i].Selected=false) then //если Х совпало...
+      if ((X2List[i] = X2List[WorkIndex]) or (X2List[i] = X2List[WorkIndex]+1) or (X2List[i] = X2List[WorkIndex]-1)) and (PrimList.items[i].Selected=false) then //если Х совпало...
       Begin
-        if (Y2List[i] = Y2List[WorkIndex]) then  // ... и У совпало, значит из этой точки действительно выходит новый сегмент.
+        if ((Y2List[i] = Y2List[WorkIndex]) or (Y2List[i] = Y2List[WorkIndex]+1) or (Y2List[i] = Y2List[WorkIndex]-1)) then  // ... и У совпало, значит из этой точки действительно выходит новый сегмент.
         Begin
           CoordClick:=CoordClick+1; // добавляем счетчик, запоминаем индекс
           NewSegmentIndex:=i;
@@ -166,7 +166,7 @@ Begin
     //выделили исходный сегмент и взяли название цепи
 
     PrimList := TInterfaceList.Create;
-    X1List := TStringList.Create; Y1List := TStringList.Create; X2List := TStringList.Create; Y2List := TStringList.Create;
+    X1List := TList.Create; Y1List := TList.Create; X2List := TList.Create; Y2List := TList.Create;
 
     Iterator  :=Net.GroupIterator_Create;
     Iterator.AddFilter_ObjectSet(MkSet(eTrackObject,eArcObject,eViaObject,ePadObject,eNoDimension,eCreate_Default));
@@ -192,29 +192,29 @@ Begin
 
         'Track': begin
                    Track:=PrimList.items[i];
-                   X1List.Add(IntToStr(Track.x1)); Y1List.Add(IntToStr(Track.y1));
-                   X2List.Add(IntToStr(Track.x2)); Y2List.Add(IntToStr(Track.y2));
+                   X1List.Add((Track.x1)); Y1List.Add((Track.y1));
+                   X2List.Add((Track.x2)); Y2List.Add((Track.y2));
                    //Track.Selected:=true; ShowInfo('x1: '+X1List[i]+'; y1: '+Y1List[i]+'; x2: '+X2List[i]+'; y2: '+Y2List[i]); Track.Selected:=false;
                  end;
 
         'Arc'  : begin
                    Arc:=PrimList.items[i];
-                   X1List.Add(IntToStr( Arc.StartX ));  Y1List.Add(IntToStr( Arc.StartY ));
-                   X2List.Add(IntToStr( Arc.EndX  ));  Y2List.Add(IntToStr( Arc.EndY  ));
+                   X1List.Add(( Arc.StartX ));  Y1List.Add(( Arc.StartY ));
+                   X2List.Add(( Arc.EndX  ));  Y2List.Add(( Arc.EndY  ));
                    //Arc.Selected:=true; ShowInfo('x1: '+X1List[i]+'; y1: '+Y1List[i]+'; x2: '+X2List[i]+'; y2: '+Y2List[i]); Arc.Selected:=false;
                  end;
 
         'Via'  : begin
                    Via:=PrimList.items[i];
-                   X1List.Add(IntToStr(Via.x)); Y1List.Add(IntToStr(Via.y));
-                   X2List.Add(IntToStr(Via.x)); Y2List.Add(IntToStr(Via.y));
+                   X1List.Add((Via.x)); Y1List.Add((Via.y));
+                   X2List.Add((Via.x)); Y2List.Add((Via.y));
                    //Via.Selected:=true; ShowInfo('x1: '+X1List[i]+'; y1: '+Y1List[i]+'; x2: '+X2List[i]+'; y2: '+Y2List[i]); Via.Selected:=false;
                  end;
 
         'Pad'  : begin
                     Pad:=PrimList.items[i];
-                    X1List.Add(IntToStr(Pad.x)); Y1List.Add(IntToStr(Pad.y));
-                    X2List.Add(IntToStr(Pad.x)); Y2List.Add(IntToStr(Pad.y));
+                    X1List.Add((Pad.x)); Y1List.Add((Pad.y));
+                    X2List.Add((Pad.x)); Y2List.Add((Pad.y));
                     //Via.Selected:=true; ShowInfo('x1: '+X1List[i]+'; y1: '+Y1List[i]+'; x2: '+X2List[i]+'; y2: '+Y2List[i]); Via.Selected:=false;
                  end;
     end;
