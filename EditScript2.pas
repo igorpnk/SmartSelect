@@ -1,10 +1,7 @@
 {...............................................................................}
 Var
     PCB_Board  : IPCB_Board;
-    TIterator  : IPCB_BoardIterator;
-    AIterator  : IPCB_BoardIterator;
-    VIterator  : IPCB_BoardIterator;
-    PIterator  : IPCB_BoardIterator;
+    Iterator  : IPCB_GroupIterator;
 
     Track     : IPCB_Track;
     Arc       : IPCB_Arc;
@@ -12,10 +9,10 @@ Var
     Net       : IPCB_Net;
     Pad       : IPCB_Pad;
     layer     : Tlayer;
+    Primitive : IPCB_Primitive;
 
-    TrackList : TInterfaceList;
+    PrimList : TInterfaceList;
     X1List,Y1List,X2List,Y2List: TStringList; //ну неизвестно сколько их будет, поэтому одним двумерным никак
-    NetName   : string;
     i,InitialSegmentIndex,NewSegmentIndex,CoordClick
               : integer;
     count     : integer;
@@ -31,9 +28,9 @@ Begin
     CoordClick:=0;
     NewSegmentIndex:=-1;
     // проверка на совпадение Х1 и У1 (исх) и  Х1 и У1 (нов)
-    For i := 0 to TrackList.Count - 1 Do //проверка на совпадение Х
+    For i := 0 to PrimList.Count - 1 Do //проверка на совпадение Х
     Begin
-      if (X1List[i] = X1List[WorkIndex]) and (TrackList.items[i].Selected=false) then //если Х совпало...
+      if (X1List[i] = X1List[WorkIndex]) and (PrimList.items[i].Selected=false) then //если Х совпало...
       Begin
         if Y1List[i] = Y1List[WorkIndex] then  // ... и У совпало, значит из этой точки действительно выходит новый сегмент.
         Begin
@@ -44,9 +41,9 @@ Begin
     End;
 
     // проверка на совпадение Х1 и У1 (исх) и  Х2 и У2 (нов)
-    For i := 0 to TrackList.Count - 1 Do //проверка на совпадение Х
+    For i := 0 to PrimList.Count - 1 Do //проверка на совпадение Х
     Begin
-      if (X2List[i] = X1List[WorkIndex]) and (TrackList.items[i].Selected=false) then //если Х совпало...
+      if (X2List[i] = X1List[WorkIndex]) and (PrimList.items[i].Selected=false) then //если Х совпало...
       Begin
         if Y2List[i] = Y1List[WorkIndex] then  // ... и У совпало, значит из этой точки действительно выходит новый сегмент.
         Begin
@@ -58,7 +55,7 @@ Begin
 
     if CoordClick=1 Then
     Begin
-      TrackList.items[NewSegmentIndex].Selected:=true; TrackList.items[NewSegmentIndex].GraphicallyInvalidate;
+      PrimList.items[NewSegmentIndex].Selected:=true; PrimList.items[NewSegmentIndex].GraphicallyInvalidate;
       Result:=NewSegmentIndex;//если сегмент один, возвращаем его. Если их нет/два и больше, этот конец нам не подходит.
       Exit;
     End;
@@ -69,9 +66,9 @@ Begin
     CoordClick:=0;
     NewSegmentIndex:=-1;
     // проверка на совпадение Х2 и У2 (исх) и  Х1 и У1 (нов)
-    For i := 0 to TrackList.Count - 1 Do //проверка на совпадение Х
+    For i := 0 to PrimList.Count - 1 Do //проверка на совпадение Х
     Begin
-      if (X1List[i] = X2List[WorkIndex]) and (TrackList.items[i].Selected=false) then //если Х совпало...
+      if (X1List[i] = X2List[WorkIndex]) and (PrimList.items[i].Selected=false) then //если Х совпало...
       Begin
         if Y1List[i] = Y2List[WorkIndex] then  // ... и У совпало, значит из этой точки действительно выходит новый сегмент.
         Begin
@@ -82,9 +79,9 @@ Begin
     End;
 
     // проверка на совпадение Х2 и У2 (исх) и  Х2 и У2 (нов)
-    For i := 0 to TrackList.Count - 1 Do //проверка на совпадение Х
+    For i := 0 to PrimList.Count - 1 Do //проверка на совпадение Х
     Begin
-      if (X2List[i] = X2List[WorkIndex]) and (TrackList.items[i].Selected=false) then //если Х совпало...
+      if (X2List[i] = X2List[WorkIndex]) and (PrimList.items[i].Selected=false) then //если Х совпало...
       Begin
         if Y2List[i] = Y2List[WorkIndex] then  // ... и У совпало, значит из этой точки действительно выходит новый сегмент.
         Begin
@@ -96,7 +93,7 @@ Begin
 
     if CoordClick=1 Then
     Begin
-      TrackList.items[NewSegmentIndex].Selected:=true; TrackList.items[NewSegmentIndex].GraphicallyInvalidate;
+      PrimList.items[NewSegmentIndex].Selected:=true; PrimList.items[NewSegmentIndex].GraphicallyInvalidate;
       Result:=NewSegmentIndex;//если сегмент один, возвращаем его. Если их нет/два и больше, этот конец нам не подходит.
       Exit;
     End;
@@ -112,12 +109,9 @@ Begin
     If PCB_Board     = Nil Then Exit;
 
 
-
-
-
     if (PCB_Board.SelectecObject[0] = NIL) then
     begin
-         Track := PCB_Board.GetObjectAtCursor(MkSet(eTrackObject,eArcObject,eViaObject,ePadObject), AllLayers, 'Choose a Track');
+         Primitive := PCB_Board.GetObjectAtCursor(MkSet(eTrackObject,eArcObject,eViaObject,ePadObject), AllLayers, 'Choose a Track');
     end  else
     begin
 
@@ -131,25 +125,23 @@ Begin
        or (PCB_Board.SelectecObject[0].ObjectID  = eViaObject) or (PCB_Board.SelectecObject[0].ObjectID  = ePadObject))
        then
            begin
-                Track := PCB_Board.SelectecObject[0];
+                Primitive := PCB_Board.SelectecObject[0];
            end
        else
            begin
-                ShowError('Please select Track!');
                 Exit;
            end;
     end;
 
 
-    If Track <> Nil Then
+    If Primitive <> Nil Then
     begin
-      If Track.Net <> Nil Then
+      If Primitive.Net <> Nil Then
       begin
-        Track.Selected:=true;
-        Track.GraphicallyInvalidate;
-        Net:=Track.Net;
-        NetName:=Net.Name;
-        layer:= Track.Layer;
+        Primitive.Selected:=true;
+        Primitive.GraphicallyInvalidate;
+        Net:=Primitive.Net;
+        layer:= Primitive.Layer;
       end else
       begin
       Client.SendMessage('PCB:SelectNext', 'SelectTopologyObjects = TRUE', 255, Client.CurrentView);
@@ -159,97 +151,97 @@ Begin
     end else Exit;
     //выделили исходный сегмент и взяли название цепи
 
-    TrackList := TInterfaceList.Create;
+    PrimList := TInterfaceList.Create;
     X1List := TStringList.Create; Y1List := TStringList.Create; X2List := TStringList.Create; Y2List := TStringList.Create;
 
-    TIterator  :=Net.GroupIterator_Create;
-    TIterator.AddFilter_ObjectSet(MkSet(eTrackObject,eNoDimension,eCreate_Default));
-    TIterator.AddFilter_LayerSet(MkSet(Layer)); ;
+    Iterator  :=Net.GroupIterator_Create;
+    Iterator.AddFilter_ObjectSet(MkSet(eTrackObject,eArcObject,eViaObject,ePadObject,eNoDimension,eCreate_Default));
+    Iterator.AddFilter_LayerSet(MkSet(Layer,eMultiLayer));
     //TIterator.AddFilter_Method(eProcessAll);
 
-    AIterator  := Net.GroupIterator_Create;
-    AIterator.AddFilter_ObjectSet(MkSet(eArcObject,eCreate_Default));
-    AIterator.AddFilter_LayerSet(MkSet(Layer));
+    // AIterator  := Net.GroupIterator_Create;
+    //AIterator.AddFilter_ObjectSet(MkSet(eArcObject,eCreate_Default));
+    //AIterator.AddFilter_LayerSet(MkSet(Layer));
     //AIterator.AddFilter_Method(eProcessAll);
 
-    VIterator  := Net.GroupIterator_Create;
-    VIterator.AddFilter_ObjectSet(MkSet(eViaObject));
-    VIterator.AddFilter_LayerSet(AllLayers);
+    //VIterator  := Net.GroupIterator_Create;
+    //VIterator.AddFilter_ObjectSet(MkSet(eViaObject));
+   // VIterator.AddFilter_LayerSet(AllLayers);
     //VIterator.AddFilter_Method(eProcessAll);
 
 
-    PIterator := Net.GroupIterator_Create;
-    PIterator.AddFilter_ObjectSet(MkSet(ePadObject,eCreate_Default));
-    PIterator.AddFilter_LayerSet(AllLayers);
+    //PIterator := Net.GroupIterator_Create;
+    //PIterator.AddFilter_ObjectSet(MkSet(ePadObject,eCreate_Default));
+    //PIterator.AddFilter_LayerSet(AllLayers);
     //PIterator.AddFilter_Method(eProcessAll);
 
-    Track := TIterator.FirstPCBObject;
-    Arc   := AIterator.FirstPCBObject;
-    Via   := VIterator.FirstPCBObject;
-    Pad   := PIterator.FirstPCBObject;
+    Primitive := Iterator.FirstPCBObject;
+    //Arc   := AIterator.FirstPCBObject;
+    //Via   := VIterator.FirstPCBObject;
+    //Pad   := PIterator.FirstPCBObject;
 
-    While (Track <> Nil) Do
+    While (Primitive <> Nil) Do
     Begin
-      if Track.Net=Net then TrackList.Add(Track);
-      Track := TIterator.NextPCBObject;
+      if Primitive.Net=Net then PrimList.Add(Primitive);
+      Primitive := Iterator.NextPCBObject;
     End;
 
-    While (Arc <> Nil) Do
-    Begin
-      if Arc.Net=Net then TrackList.Add(Arc);
-      Arc := AIterator.NextPCBObject;
-    End;
+    //While (Arc <> Nil) Do
+    //Begin
+    //  if Arc.Net=Net then PrimList.Add(Arc);
+    //  Arc := AIterator.NextPCBObject;
+    //End;
 
-    While (Via <> Nil) Do
-    Begin
-      if Via.Net=Net then TrackList.Add(Via);
-      Via := VIterator.NextPCBObject;
-    End;
+    //While (Via <> Nil) Do
+    //Begin
+    //  if Via.Net=Net then PrimList.Add(Via);
+    //  Via := VIterator.NextPCBObject;
+    //End;
 
-    While (Pad <> Nil) Do
-    Begin
-      if Pad.Net=Net then TrackList.Add(Pad);
-      Pad := PIterator.NextPCBObject;
-    End;
+    //While (Pad <> Nil) Do
+    //Begin
+    //  if Pad.Net=Net then PrimList.Add(Pad);
+    //  Pad := PIterator.NextPCBObject;
+    //End;
 
-    Net.GroupIterator_Destroy(TIterator);
-    Net.GroupIterator_Destroy(AIterator);
+    Net.GroupIterator_Destroy(Iterator);
+    //Net.GroupIterator_Destroy(AIterator);
     //PCB_Board.BoardIterator_Destroy(TIterator);
     //PCB_Board.BoardIterator_Destroy(AIterator);
-    Net.GroupIterator_Destroy(VIterator);
-    Net.GroupIterator_Destroy(PIterator);
+    //Net.GroupIterator_Destroy(VIterator);
+    //Net.GroupIterator_Destroy(PIterator);
     //запомнили все элементы, принадлежащие к данной цепи в массив
 
-    For i := 0 to TrackList.Count - 1 Do
+    For i := 0 to PrimList.Count - 1 Do
     Begin
 
-    if TrackList.items[i].Selected = true then InitialSegmentIndex:=i;
+    if PrimList.items[i].Selected = true then InitialSegmentIndex:=i;
 
-    Case TrackList.items[i].ObjectIDString of
+    Case PrimList.items[i].ObjectIDString of
 
         'Track': begin
-                   Track:=TrackList.items[i];
+                   Track:=PrimList.items[i];
                    X1List.Add(floattostr(coordtomms(Track.x1))); Y1List.Add(floattostr(coordtomms(Track.y1)));
                    X2List.Add(floattostr(coordtomms(Track.x2))); Y2List.Add(floattostr(coordtomms(Track.y2)));
                    //Track.Selected:=true; ShowInfo('x1: '+X1List[i]+'; y1: '+Y1List[i]+'; x2: '+X2List[i]+'; y2: '+Y2List[i]); Track.Selected:=false;
                  end;
 
         'Arc'  : begin
-                   Arc:=TrackList.items[i];
+                   Arc:=PrimList.items[i];
                    X1List.Add(floattostr( coordtomms(Arc.StartX) ));  Y1List.Add(floattostr( coordtomms(Arc.StartY) ));
                    X2List.Add(floattostr( coordtomms(Arc.EndX  ) ));  Y2List.Add(floattostr( coordtomms(Arc.EndY  ) ));
                    //Arc.Selected:=true; ShowInfo('x1: '+X1List[i]+'; y1: '+Y1List[i]+'; x2: '+X2List[i]+'; y2: '+Y2List[i]); Arc.Selected:=false;
                  end;
 
         'Via'  : begin
-                   Via:=TrackList.items[i];
+                   Via:=PrimList.items[i];
                    X1List.Add(floattostr(coordtomms(Via.x))); Y1List.Add(floattostr(coordtomms(Via.y)));
                    X2List.Add(floattostr(coordtomms(Via.x))); Y2List.Add(floattostr(coordtomms(Via.y)));
                    //Via.Selected:=true; ShowInfo('x1: '+X1List[i]+'; y1: '+Y1List[i]+'; x2: '+X2List[i]+'; y2: '+Y2List[i]); Via.Selected:=false;
                  end;
 
         'Pad'  : begin
-                    Pad:=TrackList.items[i];
+                    Pad:=PrimList.items[i];
                     X1List.Add(floattostr(coordtomms(Pad.x))); Y1List.Add(floattostr(coordtomms(Pad.y)));
                     X2List.Add(floattostr(coordtomms(Pad.x))); Y2List.Add(floattostr(coordtomms(Pad.y)));
                     //Via.Selected:=true; ShowInfo('x1: '+X1List[i]+'; y1: '+Y1List[i]+'; x2: '+X2List[i]+'; y2: '+Y2List[i]); Via.Selected:=false;
@@ -275,7 +267,7 @@ Begin
       FindNextSegment(NewSegmentIndex);
     End;
 
-    TrackList.Free; X1List.Free; Y1List.Free; X2List.Free; Y2List.Free;
+    PrimList.Free; X1List.Free; Y1List.Free; X2List.Free; Y2List.Free;
 
     PCB_Board.GraphicallyInvalidate;
     Client.SendMessage('PCB:Zoom', 'Action=Redraw', 255, Client.CurrentView); // Update PCB document
