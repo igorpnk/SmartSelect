@@ -18,6 +18,7 @@ Var
     count     : integer;
 
     Block     : Boolean;
+    segments  : boolean;
 {...............................................................................}
 
 //выделить track, вызвать скрипт. Скрипт выделит имя цепи из этого трэка и выделит все остальные объекты (track, arc, via) которые принадлежат к этой цепи.
@@ -29,7 +30,6 @@ Begin
 
     CoordClick:=0;
     NewSegmentIndex:=-1;
-
     // проверка на совпадение Х1 и У1 (исх) и  Х1 и У1 (нов)
     For i := 0 to PrimList.Count - 1 Do //проверка на совпадение Х
     Begin
@@ -56,12 +56,16 @@ Begin
       End;
     End;
 
-    if CoordClick=1 Then
+    if (NewSegmentIndex <> -1) then
+    if (((CoordClick=1) or (block)))  Then
     Begin
       PrimList.items[NewSegmentIndex].Selected:=true; PrimList.items[NewSegmentIndex].GraphicallyInvalidate;
       Result:=NewSegmentIndex;//если сегмент один, возвращаем его. Если их нет/два и больше, этот конец нам не подходит.
       Exit;
-    End;
+    End else
+    begin
+      segments := true;
+    end;
 
 
     //Ищем с другого конца:
@@ -94,12 +98,19 @@ Begin
       End;
     End;
 
-    if CoordClick=1 Then
+    if ((CoordClick=1) or (block)) Then
     Begin
+      if (NewSegmentIndex = -1) then
+      begin
+         exit;
+      end;
       PrimList.items[NewSegmentIndex].Selected:=true; PrimList.items[NewSegmentIndex].GraphicallyInvalidate;
       Result:=NewSegmentIndex;//если сегмент один, возвращаем его. Если их нет/два и больше, этот конец нам не подходит.
       Exit;
-    End;
+    End else
+    begin
+      segments := true;
+    end;
 
     NewSegmentIndex:=-1;
     Result:=WorkIndex; // если и справа и слева развилка/уже выделенные сегменты, возвращаем исходный.
@@ -242,9 +253,22 @@ Begin
 
     if (PCB_Board.SelectecObjectCount = 1) then   //если ничего не выделилось, то возможно у нас Via, pad или один сегмент
      begin
-          Block := true;
-          Client.SendMessage('PCB:SelectNext', 'SelectTopologyObjects = TRUE', 255, Client.CurrentView);
-          Exit;
+          //Client.SendMessage('PCB:SelectNext', 'SelectTopologyObjects = TRUE', 255, Client.CurrentView);
+          //Exit;
+          Segments := true;
+
+          While (Segments) do
+          begin
+             Segments := false;
+             Block := true;
+             FindNextSegment(InitialSegmentIndex);  // поэтому вызываем всё это to ераз, чтобы он прошел еще и в другую сторону
+             Block := false;
+
+             While (NewSegmentIndex<>-1) Do
+             Begin
+               FindNextSegment(NewSegmentIndex);
+             End;
+          end;
      end;
 
     PrimList.Free; X1List.Free; Y1List.Free; X2List.Free; Y2List.Free;
