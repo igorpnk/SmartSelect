@@ -20,6 +20,11 @@ Var
     Block     : Boolean;
     segments  : boolean;
     OldBlock  : Boolean;
+    Str       : String;
+    TrackS    : int;
+    ViaS      : int;
+    PadS      : int;
+    ArcS      : int;
 {...............................................................................}
 
 //выделить track, вызвать скрипт. Скрипт выделит имя цепи из этого трэка и выделит все остальные объекты (track, arc, via) которые принадлежат к этой цепи.
@@ -61,7 +66,8 @@ Begin
     if (NewSegmentIndex <> -1) then
     if (((CoordClick=1) or (block)))  Then
     Begin
-
+      Str :=  PrimList.items[NewSegmentIndex].Descriptor;
+      //Primitive
       if ((block = false) and (OldBlock = true))
       then
       begin
@@ -195,8 +201,75 @@ Begin
     PrimList := TInterfaceList.Create;
     X1List := TList.Create; Y1List := TList.Create; X2List := TList.Create; Y2List := TList.Create;
 
+    //Проверяем, а не стоит ли фильтр выделения
+    TrackS := 0;
+    ArcS := 0;
+    ViaS := 0;
+    PadS := 0;
+
+    //треки
     Iterator  :=Net.GroupIterator_Create;
-    Iterator.AddFilter_ObjectSet(MkSet(eTrackObject,eArcObject,eViaObject,ePadObject,eNoDimension,eCreate_Default));
+    Iterator.AddFilter_ObjectSet(MkSet(eTrackObject,eNoDimension,eCreate_Default));
+    if (layer = eMultiLayer) then  Iterator.AddFilter_LayerSet(AllLayers);
+    if (layer <> eMultiLayer) then Iterator.AddFilter_LayerSet(MkSet(Layer,eMultiLayer));
+    Primitive := Iterator.FirstPCBObject;
+
+    if (Primitive <> Nil) then
+    begin
+         Primitive.Selected := true;
+         if (Primitive.Selected = true) then TrackS := eTrackObject;
+         Primitive.Selected := false;
+    end;
+    Net.GroupIterator_Destroy(Iterator);
+
+    //акри
+    Iterator  :=Net.GroupIterator_Create;
+    Iterator.AddFilter_ObjectSet(MkSet(eArcObject,eNoDimension,eCreate_Default));
+    if (layer = eMultiLayer) then  Iterator.AddFilter_LayerSet(AllLayers);
+    if (layer <> eMultiLayer) then Iterator.AddFilter_LayerSet(MkSet(Layer,eMultiLayer));
+    Primitive := Iterator.FirstPCBObject;
+
+    if (Primitive <> Nil) then
+    begin
+         Primitive.Selected := true;
+         if (Primitive.Selected = true) then ArcS := eArcObject;
+         Primitive.Selected := false;
+    end;
+    Net.GroupIterator_Destroy(Iterator);
+
+    //Вии
+    Iterator  :=Net.GroupIterator_Create;
+    Iterator.AddFilter_ObjectSet(MkSet(eViaObject,eNoDimension,eCreate_Default));
+    if (layer = eMultiLayer) then  Iterator.AddFilter_LayerSet(AllLayers);
+    if (layer <> eMultiLayer) then Iterator.AddFilter_LayerSet(MkSet(Layer,eMultiLayer));
+    Primitive := Iterator.FirstPCBObject;
+
+    if (Primitive <> Nil) then
+    begin
+         Primitive.Selected := true;
+         if (Primitive.Selected = true) then ViaS := eViaObject;
+         Primitive.Selected := false;
+    end;
+    Net.GroupIterator_Destroy(Iterator);
+
+    //пады
+    Iterator  :=Net.GroupIterator_Create;
+    Iterator.AddFilter_ObjectSet(MkSet(ePadObject,eNoDimension,eCreate_Default));
+    if (layer = eMultiLayer) then  Iterator.AddFilter_LayerSet(AllLayers);
+    if (layer <> eMultiLayer) then Iterator.AddFilter_LayerSet(MkSet(Layer,eMultiLayer));
+    Primitive := Iterator.FirstPCBObject;
+
+    if (Primitive <> Nil) then
+    begin
+         Primitive.Selected := true;
+         if (Primitive.Selected = true) then PadS := ePadObject;
+         Primitive.Selected := false;
+    end;
+    Net.GroupIterator_Destroy(Iterator);
+
+    //заполняем PrimList
+    Iterator  :=Net.GroupIterator_Create;
+    Iterator.AddFilter_ObjectSet(MkSet(TrackS,ArcS,ViaS,PadS,eNoDimension,eCreate_Default));
     if (layer = eMultiLayer) then  Iterator.AddFilter_LayerSet(AllLayers);
     if (layer <> eMultiLayer) then Iterator.AddFilter_LayerSet(MkSet(Layer,eMultiLayer));
 
